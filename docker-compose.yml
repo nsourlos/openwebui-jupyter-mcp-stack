@@ -1,0 +1,45 @@
+name: openwebui-code_execution-mcp #Container name
+version: "3.8" #Docker compose version
+
+services:
+  open-webui:
+    image: ghcr.io/open-webui/open-webui:latest
+    container_name: open-webui
+    ports:
+      - "3000:8080"
+    volumes:
+      - open-webui:/app/backend/data
+    restart: unless-stopped
+
+  jupyter:
+    build:
+      context: .
+      dockerfile: Dockerfile.jupyter
+    container_name: jupyter-notebook
+    ports:
+      - "8888:8888"
+    volumes:
+      # - jupyter_data:/home/jovyan/work
+      # - ./jupyter_output:/home/jovyan/work/output
+      # - ./jupyter_files:/home/jovyan/work   # host folder <-> container work folder
+      - ./jupyter_files:/home/jovyan
+    environment:
+      - JUPYTER_ENABLE_LAB=yes
+      - JUPYTER_TOKEN=123456
+    restart: unless-stopped
+
+  mcp-server:
+    build:
+      context: .
+      dockerfile: Dockerfile.mcp
+    container_name: mcp-server
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+    command: ["python", "run_server.py"]
+    restart: unless-stopped
+
+volumes:
+  open-webui:
+  # jupyter_data:
